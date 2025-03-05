@@ -27,9 +27,21 @@ from rate_limiter import RateLimiter
 logger.remove()
 logger.add(sys.stderr, level="INFO")
 
-# Ensure logs directory exists and set up file logging
-os.makedirs("logs", exist_ok=True)
-logger.add("logs/bot.log", rotation="10 MB", level="INFO", mode="a", enqueue=True)
+# Set up logging with absolute paths
+LOG_DIR = os.path.join(os.getcwd(), "logs")
+LOG_FILE = os.path.join(LOG_DIR, "bot.log")
+
+# Ensure logs directory exists
+os.makedirs(LOG_DIR, exist_ok=True)
+
+# Configure file logging
+logger.add(
+    LOG_FILE,
+    rotation="10 MB",
+    level="INFO",
+    mode="a",
+    enqueue=True,
+)
 
 # Initialize clients
 openrouter_client = OpenRouterClient()
