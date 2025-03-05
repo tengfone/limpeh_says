@@ -1,219 +1,205 @@
-# LimpehSays Telegram Bot
+# 🇸🇬 LimpehSays Telegram Bot
 
-A Telegram bot that converts text to Singlish using DeepSeek via the OpenRouter API.
+<div align="center">
 
-## Features
+![LimpehSays Logo](icon.jpeg)
 
-- Converts any text into Singlish using DeepSeek (via OpenRouter API)
-- Works in group chats and responds only when mentioned (@LimpehSays text)
-- Supports inline queries, allowing users to type @LimpehSays hello and get an instant Singlish translation
-- Implements rate limiting to prevent spam
-- Handles errors gracefully and logs issues for debugging
-- Automatically switches between free and paid models if the free model fails
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Telegram](https://img.shields.io/badge/Telegram-Bot-blue.svg)](https://t.me/LimpehSaysBot)
+[![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 
-## Example Usage
+*Your friendly Singlish translator bot for Telegram! Convert any English text to authentic Singaporean English (Singlish).*
 
-- **Group Chat**: `@LimpehSays I am going to the store.`
-  - Bot responds: "Limpeh go pasar liao, bo jio!"
-  
-- **Inline Query**: Type `@LimpehSays Hello, how are you?` in any chat
-  - Bot provides a Singlish translation that you can send
+[Add to Telegram](https://t.me/LimpehSaysBot) • [Report Bug](https://github.com/tengfone/limpeh_says/issues) • [Request Feature](https://github.com/tengfone/limpeh_says/issues)
 
-## Setup
+</div>
+
+---
+
+## 🤖 About The Bot
+
+LimpehSays is a Telegram bot that converts English text to authentic Singlish using DeepSeek AI via OpenRouter. Whether you want to sound more local or just have fun with Singlish, this bot has got you covered!
+
+### 🌟 Features
+
+- 🗣️ **Direct Chat Translation**: Chat directly with the bot to get instant Singlish translations
+- 👥 **Group Chat Support**: Add to groups and mention `@LimpehSays` for translations
+- ⚡ **Inline Mode**: Use in any chat with `@LimpehSays [text]`
+- 🔄 **Smart Model Switching**: Automatically switches between free and paid models
+- 🛡️ **Rate Limiting**: Prevents spam and ensures fair usage
+- 📝 **Comprehensive Logging**: Tracks translations and errors for debugging
+
+### 💬 Usage Examples
+
+```
+You: I am going to the store
+Bot: Going pasar ah!
+
+You: This food is very delicious
+Bot: Wah the food damn shiok sia!
+
+You: I don't understand what you're saying
+Bot: Dun understand leh, say what?
+```
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.8 or higher (or Docker)
-- A Telegram Bot Token (from [BotFather](https://t.me/botfather))
-- An OpenRouter API key (from [OpenRouter](https://openrouter.ai/))
+- Telegram Bot Token (from [BotFather](https://t.me/botfather))
+- OpenRouter API key (from [OpenRouter](https://openrouter.ai/))
 
-### Installation
+### 🐳 Docker Installation (Recommended)
 
-#### Option 1: Standard Installation
-
-1. Clone this repository:
+1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/limpeh_says.git
+   git clone https://github.com/tengfone/limpeh_says.git
    cd limpeh_says
    ```
 
-2. Create a virtual environment and activate it:
+2. Create and configure `.env`:
 
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   cp .env.example .env
+   # Edit .env with your tokens
    ```
 
-3. Install the required packages:
+3. Build and run:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+### 🐍 Standard Installation
+
+1. Clone and setup virtual environment:
+
+   ```bash
+   git clone https://github.com/tengfone/limpeh_says.git
+   cd limpeh_says
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   ```
+
+2. Install dependencies:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Create a `.env` file based on the `.env.example` file:
+3. Configure environment:
 
    ```bash
    cp .env.example .env
+   # Edit .env with your tokens
    ```
 
-5. Edit the `.env` file and add your Telegram Bot Token and OpenRouter API key:
-
-   ```
-   TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
-   OPENROUTER_API_KEY=your_openrouter_api_key_here
-   MODEL_TYPE=free  # Use 'free' for the free model or 'paid' for the paid model
-   ```
-
-#### Option 2: Docker Installation
-
-1. Clone this repository:
+4. Run the bot:
 
    ```bash
-   git clone https://github.com/yourusername/limpeh_says.git
-   cd limpeh_says
+   python bot.py
    ```
 
-2. Create a `.env` file based on the `.env.example` file:
+## ⚙️ Configuration
 
-   ```bash
-   cp .env.example .env
-   ```
+### Environment Variables
 
-3. Edit the `.env` file and add your Telegram Bot Token and OpenRouter API key:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TELEGRAM_BOT_TOKEN` | Your Telegram bot token | Required |
+| `OPENROUTER_API_KEY` | OpenRouter API key | Required |
+| `RATE_LIMIT` | Requests per user per minute | 5 |
+| `MODEL_TYPE` | AI model type ('free' or 'paid') | free |
 
-   ```
-   TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
-   OPENROUTER_API_KEY=your_openrouter_api_key_here
-   MODEL_TYPE=free  # Use 'free' for the free model or 'paid' for the paid model
-   ```
-
-4. Build and run the Docker container:
-
-   ```bash
-   docker-compose up -d
-   ```
-
-### Running the Bot
-
-#### Standard Method
-
-```bash
-python bot.py
-```
-
-#### Docker Method
-
-```bash
-docker-compose up -d
-```
-
-## Deployment
-
-### Option 1: Deploy on a VPS or Cloud Server
-
-1. SSH into your server
-2. Clone the repository and follow the installation steps above
-3. Use a process manager like `systemd` or `supervisor` to keep the bot running
-
-Example systemd service file (`/etc/systemd/system/limpehsays.service`):
-
-```ini
-[Unit]
-Description=LimpehSays Telegram Bot
-After=network.target
-
-[Service]
-User=yourusername
-WorkingDirectory=/path/to/limpeh_says
-ExecStart=/path/to/limpeh_says/venv/bin/python /path/to/limpeh_says/bot.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start the service:
-
-```bash
-sudo systemctl enable limpehsays
-sudo systemctl start limpehsays
-```
-
-### Option 2: Deploy with Docker
-
-1. SSH into your server
-2. Clone the repository
-3. Create and configure the `.env` file
-4. Build and run the Docker container:
-
-   ```bash
-   docker-compose up -d
-   ```
-
-### Option 3: Deploy on Heroku
-
-1. Create a `Procfile` in the project root:
-
-   ```
-   worker: python bot.py
-   ```
-
-2. Initialize a Git repository (if not already done):
-
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   ```
-
-3. Create a Heroku app and push to it:
-
-   ```bash
-   heroku create
-   heroku config:set TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
-   heroku config:set OPENROUTER_API_KEY=your_openrouter_api_key_here
-   heroku config:set MODEL_TYPE=free
-   git push heroku main
-   ```
-
-4. Scale the worker dyno:
-
-   ```bash
-   heroku ps:scale worker=1
-   ```
-
-## Model Configuration
-
-The bot can use either the free or paid DeepSeek model via OpenRouter:
+### AI Models
 
 - **Free Model**: `deepseek/deepseek-chat:free`
 - **Paid Model**: `deepseek/deepseek-chat`
 
-You can configure which model to use by setting the `MODEL_TYPE` environment variable in your `.env` file:
+## 🌐 Deployment
+
+The recommended way to deploy LimpehSays is using Docker on a VPS or cloud server.
+
+1. SSH into your server
+2. Clone the repository
+3. Create and configure the `.env` file
+4. Run the deployment script:
+
+   ```bash
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
+
+The deployment script will:
+
+- Check for required configuration
+- Pull the latest changes
+- Build and start the Docker container
+- Set up automatic restarts
+- Provide commands for viewing logs and managing the bot
+
+## 📝 Logging
+
+The bot maintains detailed logs in `bot.log`:
+
+- Input text logging
+- Translation results
+- Error tracking
+- Model usage monitoring
+
+View logs in real-time:
+
+```bash
+tail -f bot.log
+```
+
+## 🛠️ Development
+
+### Project Structure
 
 ```
-MODEL_TYPE=free  # Use the free model
+limpeh_says/
+├── bot.py              # Main bot logic
+├── config.py           # Configuration handling
+├── openrouter_client.py # API client
+├── rate_limiter.py     # Rate limiting logic
+├── requirements.txt    # Dependencies
+├── Dockerfile         # Docker configuration
+├── docker-compose.yml # Docker Compose config
+└── deploy.sh          # Deployment script
 ```
 
-or
+### Running Tests
 
+```bash
+python test_bot.py
 ```
-MODEL_TYPE=paid  # Use the paid model
-```
 
-The bot is designed to automatically switch from the free model to the paid model if the free model fails (e.g., due to rate limiting). This behavior ensures that your bot continues to function even if the free model becomes unavailable.
-
-## Customization
-
-- To change the rate limit, modify the `RATE_LIMIT` value in your `.env` file
-- To use a different model, modify the `model_name` property in the `config.py` file
-
-## License
-
-MIT
-
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 👏 Acknowledgments
+
+- [python-telegram-bot](https://python-telegram-bot.org/) for the amazing Telegram bot framework
+- [OpenRouter](https://openrouter.ai/) for providing AI model access
+- [DeepSeek](https://deepseek.com/) for the language models
+
+---
+
+<div align="center">
+Made with ❤️ in Singapore 🇸🇬
+</div>
