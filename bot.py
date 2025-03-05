@@ -6,6 +6,7 @@ A Telegram bot that converts text to Singlish using OpenAI via OpenRouter API.
 
 import sys
 import asyncio
+import os
 from loguru import logger
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import (
@@ -25,7 +26,10 @@ from rate_limiter import RateLimiter
 # Configure logger
 logger.remove()
 logger.add(sys.stderr, level="INFO")
-logger.add("logs/bot.log", rotation="10 MB", level="INFO")
+
+# Ensure logs directory exists
+os.makedirs("logs", exist_ok=True)
+logger.add("logs/bot.log", rotation="10 MB", level="INFO", mode="a")
 
 # Initialize clients
 openrouter_client = OpenRouterClient()
