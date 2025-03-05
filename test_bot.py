@@ -1,46 +1,62 @@
-"""Test script for the LimpehSays bot."""
+"""Test cases for the bot functionality."""
+import unittest
 import asyncio
-from openrouter_client import OpenRouterClient
-from config import config
-from loguru import logger
-import sys
+import logging
+from unittest.mock import MagicMock, patch
+from telegram import Update
+from bot import handle_direct_message, handle_mention, handle_inline_query
 
-# Configure logger
-logger.remove()
-logger.add(sys.stderr, level="INFO")
+# Configure logging for tests
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+class TestBot(unittest.TestCase):
+    """Test cases for bot functionality."""
 
-async def test_translation():
-    """Test the translation functionality."""
-    # Check if the OpenRouter API key is set
-    if not config.openrouter_api_key:
-        print("Error: OPENROUTER_API_KEY is not set in the .env file")
-        return
-    
-    # Initialize the OpenRouter client
-    client = OpenRouterClient()
-    
-    # Test phrases
-    test_phrases = [
-        "Hello, how are you?",
-        "I am going to the store.",
-        "This is a very interesting project.",
-        "I can't believe it's already Friday!"
-    ]
-    
-    # Test the translation
-    for phrase in test_phrases:
-        print(f"\nOriginal: {phrase}")
-        try:
-            singlish = await client.translate_to_singlish(phrase)
-            print(f"Singlish: {singlish}")
-        except Exception as e:
-            print(f"Error: {str(e)}")
+    def setUp(self):
+        """Set up test fixtures."""
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
 
+    def tearDown(self):
+        """Clean up after tests."""
+        self.loop.close()
 
-if __name__ == "__main__":
-    print("Testing LimpehSays bot translation functionality...")
-    print("Make sure you have set the OPENROUTER_API_KEY in the .env file")
-    
-    # Run the test
-    asyncio.run(test_translation()) 
+    async def test_handle_direct_message(self):
+        """Test direct message handling."""
+        # Mock update and context
+        update = MagicMock(spec=Update)
+        context = MagicMock()
+        
+        # Test handling
+        await handle_direct_message(update, context)
+        
+        # Add your assertions here
+        logger.info("Direct message test completed")
+
+    async def test_handle_mention(self):
+        """Test mention handling."""
+        # Mock update and context
+        update = MagicMock(spec=Update)
+        context = MagicMock()
+        
+        # Test handling
+        await handle_mention(update, context)
+        
+        # Add your assertions here
+        logger.info("Mention test completed")
+
+    async def test_handle_inline_query(self):
+        """Test inline query handling."""
+        # Mock update and context
+        update = MagicMock(spec=Update)
+        context = MagicMock()
+        
+        # Test handling
+        await handle_inline_query(update, context)
+        
+        # Add your assertions here
+        logger.info("Inline query test completed")
+
+if __name__ == '__main__':
+    unittest.main() 

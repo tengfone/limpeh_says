@@ -1,8 +1,10 @@
 """OpenRouter API client for translating text to Singlish."""
 import httpx
-from loguru import logger
+import logging
 from config import config
 
+# Get logger for this module
+logger = logging.getLogger(__name__)
 
 class OpenRouterClient:
     """Client for interacting with the OpenRouter API to translate text to Singlish."""

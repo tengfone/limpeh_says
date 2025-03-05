@@ -1,43 +1,45 @@
-"""Rate limiter module to prevent spam."""
+"""Rate limiting functionality for the bot."""
 import time
-from collections import defaultdict
-from loguru import logger
+import logging
 from config import config
 
+# Get logger for this module
+logger = logging.getLogger(__name__)
 
 class RateLimiter:
-    """Rate limiter to prevent spam by limiting requests per user."""
-    
+    """Rate limiting implementation."""
+
     def __init__(self):
-        """Initialize the rate limiter with configuration."""
-        self.rate_limit = config.rate_limit
-        self.window_size = 60  # 1 minute window
-        self.user_requests = defaultdict(list)
-        
+        """Initialize the rate limiter."""
+        self.requests = {}  # user_id -> list of timestamps
+        self.rate_limit = config.rate_limit  # requests per minute
+
     def is_rate_limited(self, user_id: int) -> bool:
         """
-        Check if a user is rate limited.
+        Check if a user has exceeded their rate limit.
         
         Args:
-            user_id: The Telegram user ID
+            user_id: The Telegram user ID to check
             
         Returns:
-            True if the user is rate limited, False otherwise
+            True if the user has exceeded their rate limit, False otherwise
         """
         current_time = time.time()
-        user_requests = self.user_requests[user_id]
         
-        # Remove requests older than the window size
-        self.user_requests[user_id] = [
-            req_time for req_time in user_requests 
-            if current_time - req_time < self.window_size
-        ]
+        # Get the user's request history
+        user_requests = self.requests.get(user_id, [])
         
-        # Check if the user has exceeded the rate limit
-        if len(self.user_requests[user_id]) >= self.rate_limit:
-            logger.warning(f"User {user_id} is rate limited")
+        # Remove requests older than 1 minute
+        user_requests = [t for t in user_requests if current_time - t < 60]
+        
+        # Update the requests list
+        self.requests[user_id] = user_requests
+        
+        # Check if the user has exceeded their rate limit
+        if len(user_requests) >= self.rate_limit:
+            logger.warning(f"User {user_id} exceeded rate limit")
             return True
-        
+            
         # Add the current request
-        self.user_requests[user_id].append(current_time)
+        user_requests.append(current_time)
         return False 
