@@ -13,18 +13,13 @@ RUN groupadd -r botgroup && \
 # Set up logging directory with proper permissions
 RUN mkdir -p /app/logs && \
     chown botuser:botgroup /app/logs && \
-    chmod 755 /app
+    chmod 755 /app/logs
 
 # Copy the rest of the application
 COPY . .
 
-# Ensure all files have proper permissions
-RUN chown -R botuser:botgroup /app && \
-    chmod -R 644 /app/logs/* && \
-    chmod 755 /app/logs && \
-    touch /app/logs/limpehsays_log.log && \
-    chown botuser:botgroup /app/logs/limpehsays_log.log && \
-    chmod 644 /app/logs/limpehsays_log.log
+# Set proper ownership
+RUN chown -R botuser:botgroup /app
 
 # Switch to non-root user
 USER botuser

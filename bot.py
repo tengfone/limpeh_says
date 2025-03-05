@@ -7,7 +7,8 @@ A Telegram bot that converts text to Singlish using OpenAI via OpenRouter API.
 import sys
 import asyncio
 import os
-from loguru import logger
+import logging
+from logging.handlers import RotatingFileHandler
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import (
     Application,
@@ -23,22 +24,35 @@ from config import config
 from openrouter_client import OpenRouterClient
 from rate_limiter import RateLimiter
 
-# Configure logger
-logger.remove()
-logger.add(sys.stderr, level="INFO")
-
-# Set up logging with absolute paths
-LOG_DIR = "/app/logs"  # Use absolute path in Docker
+# Configure logging
+LOG_DIR = "/app/logs"
 LOG_FILE = os.path.join(LOG_DIR, "limpehsays_log.log")
 
-# Configure file logging
-logger.add(
-    LOG_FILE,
-    rotation="10 MB",
-    level="INFO",
-    mode="a",
-    enqueue=True,
-)
+# Create logger
+logger = logging.getLogger("LimpehSays")
+logger.setLevel(logging.INFO)
+
+# Console handler
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(console_format)
+logger.addHandler(console_handler)
+
+# File handler
+try:
+    file_handler = RotatingFileHandler(
+        LOG_FILE,
+        maxBytes=10*1024*1024,  # 10MB
+        backupCount=3,
+        delay=True  # Only create file when first record is written
+    )
+    file_handler.setLevel(logging.INFO)
+    file_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(file_format)
+    logger.addHandler(file_handler)
+except Exception as e:
+    logger.warning(f"Could not set up file logging: {e}")
 
 # Initialize clients
 openrouter_client = OpenRouterClient()
