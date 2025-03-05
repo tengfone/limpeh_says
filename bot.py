@@ -79,7 +79,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         "Hello! I am LimpehSays, a bot that converts text to Singlish.\n\n"
         "You can:\n"
         "1. Chat with me directly and I'll respond in Singlish\n"
-        "2. Mention me in a group chat (@LimpehSays text)\n\n"
+        "2. Mention me in a group chat (@LimpehSaysBot text)\n\n"
         "Try saying something to me!"
     )
 
@@ -91,9 +91,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "I convert text to Singlish using AI. Here's how to use me:\n\n"
         "1. Direct chat: Just send me any message and I'll respond in Singlish\n"
         "2. In group chats: \n"
-        "   • Mention me with @LimpehSays Hello, how are you?\n"
+        "   • Mention me with @LimpehSaysBot Hello, how are you?\n"
         "   • ⚠️ Important: Make sure to grant me permission to read messages in the group!\n"
-        "3. Inline mode: Type @LimpehSays in any chat, followed by your text\n\n"
+        "3. Inline mode: Type @LimpehSaysBot in any chat, followed by your text\n\n"
         "I have a rate limit to prevent spam. Please be patient if you hit the limit.\n\n"
         "🔗 GitHub: https://github.com/tengfone/limpeh_says"
     )
@@ -194,7 +194,7 @@ async def handle_mention(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     text = message_text[mention_start:].split(" ", 1)
     if len(text) < 2:
         await update.message.reply_text(
-            "Tell me what to translate lah! Just type @LimpehSays followed by your text.",
+            "Tell me what to translate lah! Just type @LimpehSaysBot followed by your text.",
             reply_to_message_id=update.message.message_id,
         )
         return

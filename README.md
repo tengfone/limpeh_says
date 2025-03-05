@@ -24,11 +24,11 @@ LimpehSays is a Telegram bot that converts English text to authentic Singlish us
 ### 🌟 Features
 
 - 🗣️ **Direct Chat Translation**: Chat directly with the bot to get instant Singlish translations
-- 👥 **Group Chat Support**: Add to groups and mention `@LimpehSays` for translations
+- 👥 **Group Chat Support**: Add to groups and mention `@LimpehSaysBot` for translations
 - 🔄 **Smart Model Switching**: Automatically switches between free and paid models
 - 🛡️ **Rate Limiting**: Prevents spam and ensures fair usage
 - 📝 **Comprehensive Logging**: Tracks translations and errors for debugging
-- 🔄 **Inline Mode**: Use the bot in any chat by typing `@LimpehSays` followed by your text
+- 🔄 **Inline Mode**: Use the bot in any chat by typing `@LimpehSaysBot` followed by your text
 
 ### 💬 Usage Examples
 
