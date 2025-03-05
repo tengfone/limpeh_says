@@ -25,7 +25,7 @@ from rate_limiter import RateLimiter
 # Configure logger
 logger.remove()
 logger.add(sys.stderr, level="INFO")
-logger.add("bot.log", rotation="10 MB", level="INFO")
+logger.add("logs/bot.log", rotation="10 MB", level="INFO")
 
 # Initialize clients
 openrouter_client = OpenRouterClient()
