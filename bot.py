@@ -79,8 +79,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         "Hello! I am LimpehSays, a bot that converts text to Singlish.\n\n"
         "You can:\n"
         "1. Chat with me directly and I'll respond in Singlish\n"
-        "2. Mention me in a group chat (@LimpehSaysBot text)\n\n"
-        "Try saying something to me!"
+        "2. Mention me in a group chat (@LimpehSaysBot text)\n"
+        "   ⚠️ Important: Grant me permission to read messages in groups!\n"
+        "3. Use me inline in any chat by typing @LimpehSaysBot followed by text\n\n"
+        "Try saying something to me! 🇸🇬"
     )
 
 
