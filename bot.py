@@ -9,13 +9,21 @@ import asyncio
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
+from telegram import (
+    Update,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    CallbackQuery,
+)
 from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
     InlineQueryHandler,
     ContextTypes,
+    CallbackQueryHandler,
     filters,
 )
 from telegram.constants import ParseMode
@@ -25,7 +33,9 @@ from openrouter_client import OpenRouterClient
 from rate_limiter import RateLimiter
 
 # Configure logging
-LOG_DIR = "/app/logs"
+LOG_DIR = "logs"  # Changed from /app/logs to local logs directory
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 LOG_FILE = os.path.join(LOG_DIR, "limpehsays_log.log")
 
 # Create logger
@@ -35,7 +45,9 @@ logger.setLevel(logging.INFO)
 # Console handler
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setLevel(logging.INFO)
-console_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_format = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
@@ -43,12 +55,14 @@ logger.addHandler(console_handler)
 try:
     file_handler = RotatingFileHandler(
         LOG_FILE,
-        maxBytes=10*1024*1024,  # 10MB
+        maxBytes=10 * 1024 * 1024,  # 10MB
         backupCount=3,
-        delay=True  # Only create file when first record is written
+        delay=True,  # Only create file when first record is written
     )
     file_handler.setLevel(logging.INFO)
-    file_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_format = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     file_handler.setFormatter(file_format)
     logger.addHandler(file_handler)
 except Exception as e:
@@ -65,8 +79,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         "Hello! I am LimpehSays, a bot that converts text to Singlish.\n\n"
         "You can:\n"
         "1. Chat with me directly and I'll respond in Singlish\n"
-        "2. Mention me in a group chat (@LimpehSays text)\n"
-        "3. Use me inline by typing @LimpehSays followed by your text\n\n"
+        "2. Mention me in a group chat (@LimpehSays text)\n\n"
         "Try saying something to me!"
     )
 
@@ -77,8 +90,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "LimpehSays Bot Help\n\n"
         "I convert text to Singlish using AI. Here's how to use me:\n\n"
         "1. Direct chat: Just send me any message and I'll respond in Singlish\n"
-        "2. In group chats: Mention me with @LimpehSays Hello, how are you?\n"
-        "3. Inline mode: Type @LimpehSays followed by your text in any chat\n\n"
+        "2. In group chats: Mention me with @LimpehSays Hello, how are you?\n\n"
         "I have a rate limit to prevent spam. Please be patient if you hit the limit.\n\n"
         "🔗 GitHub: https://github.com/tengfone/limpeh_says"
     )
@@ -89,6 +101,10 @@ async def handle_direct_message(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """Handle direct messages to the bot."""
+    logger.info(
+        f"Received direct message from user {update.effective_user.id}: {update.message.text if update.message else 'No text'}"
+    )
+
     # Check if message has text
     if not update.message or not update.message.text:
         await update.message.reply_text(
@@ -102,6 +118,7 @@ async def handle_direct_message(
 
     # Check rate limiting
     if rate_limiter.is_rate_limited(update.effective_user.id):
+        logger.info(f"Rate limited user {update.effective_user.id}")
         await update.message.reply_text(
             "Eh slow down lah! You sending too many messages. Wait a while can?"
         )
@@ -122,6 +139,9 @@ async def handle_direct_message(
         singlish_text = await openrouter_client.translate_to_singlish(
             update.message.text
         )
+        logger.info(
+            f"Successfully translated for user {update.effective_user.id}: {update.message.text} -> {singlish_text}"
+        )
 
         # Delete the processing message
         await processing_message.delete()
@@ -129,7 +149,9 @@ async def handle_direct_message(
         # Reply with the translated text
         await update.message.reply_text(singlish_text)
     except Exception as e:
-        logger.error(f"Error in direct message translation: {str(e)}")
+        logger.error(
+            f"Error in direct message translation for user {update.effective_user.id}: {str(e)}"
+        )
         # Delete the processing message
         await processing_message.delete()
         await update.message.reply_text(
@@ -139,27 +161,50 @@ async def handle_direct_message(
 
 async def handle_mention(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle when the bot is mentioned in a message."""
-    # Check if this is a mention
+    logger.info(f"[DEBUG] Entering handle_mention")
+
     if not update.message or not update.message.text:
         return
 
-    # Extract bot username
-    bot_username = context.bot.username
-    if f"@{bot_username}" not in update.message.text:
+    # Only process messages that mention the bot
+    if not update.message.entities:
         return
 
-    # Check rate limiting
-    if rate_limiter.is_rate_limited(update.effective_user.id):
+    bot_username = context.bot.username
+    message_text = update.message.text
+    is_mentioned = False
+    mention_start = 0
+
+    # Check for mentions in entities
+    for entity in update.message.entities:
+        if entity.type == "mention":
+            mention = message_text[entity.offset : entity.offset + entity.length]
+            if mention.lower() == f"@{bot_username}".lower():
+                is_mentioned = True
+                mention_start = entity.offset
+                break
+
+    if not is_mentioned:
+        return
+
+    # Extract text after the mention
+    text = message_text[mention_start:].split(" ", 1)
+    if len(text) < 2:
         await update.message.reply_text(
-            "Eh slow down lah! You sending too many messages. Wait a while can?"
+            "Tell me what to translate lah! Just type @LimpehSays followed by your text.",
+            reply_to_message_id=update.message.message_id,
         )
         return
 
-    # Extract the text after the mention
-    text = update.message.text.split(f"@{bot_username}", 1)[1].strip()
-    if not text:
+    text = text[1].strip()
+    logger.info(f"[DEBUG] Extracted text: {text}")
+
+    # Check rate limiting
+    if rate_limiter.is_rate_limited(update.effective_user.id):
+        logger.info(f"Rate limited user {update.effective_user.id}")
         await update.message.reply_text(
-            "Tell me what to translate lah! Just type @LimpehSays followed by your text."
+            "Eh slow down lah! You sending too many messages. Wait a while can?",
+            reply_to_message_id=update.message.message_id,
         )
         return
 
@@ -169,25 +214,21 @@ async def handle_mention(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         reply_to_message_id=update.message.message_id,
     )
 
-    # Show typing indicator
-    await context.bot.send_chat_action(
-        chat_id=update.effective_chat.id, action="typing"
-    )
-
     try:
         # Translate the text to Singlish
         singlish_text = await openrouter_client.translate_to_singlish(text)
+        logger.info(
+            f"Successfully translated mention for user {update.effective_user.id}: {text} -> {singlish_text}"
+        )
 
-        # Delete the processing message
         await processing_message.delete()
-
-        # Reply with the translated text
         await update.message.reply_text(
             singlish_text, reply_to_message_id=update.message.message_id
         )
     except Exception as e:
-        logger.error(f"Error in mention translation: {str(e)}")
-        # Delete the processing message
+        logger.error(
+            f"Error in mention translation for user {update.effective_user.id}: {str(e)}"
+        )
         await processing_message.delete()
         await update.message.reply_text(
             "Aiyo, sorry ah! Got problem with the translation. Try again later lah!",
@@ -199,78 +240,117 @@ async def handle_inline_query(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """Handle inline queries."""
-    query = update.inline_query.query
+    query = update.inline_query.query.strip()
+    logger.info(
+        f"[DEBUG] Received inline query from user {update.effective_user.id}. Query: '{query}'"
+    )
 
-    if not query:
-        # Show helpful message when no query is provided
-        results = [
-            InlineQueryResultArticle(
-                id="empty",
-                title="Type something to translate",
-                description="Example: Hello, how are you?",
-                input_message_content=InputTextMessageContent(
-                    "Eh, type something after @LimpehSays lah! How to translate nothing?"
-                ),
-            )
-        ]
-        await update.inline_query.answer(results)
+    THUMBNAIL_URL = (
+        "https://raw.githubusercontent.com/tengfone/limpeh_says/master/icon.jpeg"
+    )
+
+    try:
+        if not query:
+            # Simple prompt when no text is entered
+            results = [
+                InlineQueryResultArticle(
+                    id="empty",
+                    title="Enter text to translate",
+                    description="Type your message...",
+                    input_message_content=InputTextMessageContent(
+                        "Please enter some text to translate"
+                    ),
+                    thumbnail_url=THUMBNAIL_URL,
+                )
+            ]
+        else:
+            # Show translate button without translating yet
+            keyboard = [
+                [
+                    InlineKeyboardButton(
+                        "🔄 Translate to Singlish", callback_data=f"translate:{query}"
+                    )
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            results = [
+                InlineQueryResultArticle(
+                    id="translate_option",
+                    title="Translate to Singlish",
+                    description=query,
+                    input_message_content=InputTextMessageContent(
+                        f"🇬🇧 Text: {query}\n\n👇 Click below to translate!"
+                    ),
+                    reply_markup=reply_markup,
+                    thumbnail_url=THUMBNAIL_URL,
+                )
+            ]
+
+        await update.inline_query.answer(results, cache_time=0)
+    except Exception as e:
+        logger.error(f"[DEBUG] Error in inline query handler: {str(e)}", exc_info=True)
+        try:
+            error_results = [
+                InlineQueryResultArticle(
+                    id="error",
+                    title="❌ Error",
+                    description="Try again later",
+                    input_message_content=InputTextMessageContent(
+                        "System error! Try again later."
+                    ),
+                    thumbnail_url=THUMBNAIL_URL,
+                )
+            ]
+            await update.inline_query.answer(error_results, cache_time=0)
+        except Exception as answer_error:
+            logger.error(f"[DEBUG] Could not send error message: {str(answer_error)}")
+
+
+async def handle_callback_query(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """Handle callback queries from inline buttons."""
+    query = update.callback_query
+    logger.info(f"Received callback query from user {query.from_user.id}: {query.data}")
+
+    if not query.data.startswith("translate:"):
+        await query.answer()
         return
 
+    # Extract the text to translate
+    text = query.data.split("translate:", 1)[1]
+
     # Check rate limiting
-    if rate_limiter.is_rate_limited(update.effective_user.id):
-        results = [
-            InlineQueryResultArticle(
-                id="rate_limited",
-                title="Rate Limited",
-                description="You're sending too many requests. Please wait a moment.",
-                input_message_content=InputTextMessageContent(
-                    "Eh slow down lah! You sending too many messages. Wait a while can?"
-                ),
-            )
-        ]
-        await update.inline_query.answer(results)
+    if rate_limiter.is_rate_limited(query.from_user.id):
+        logger.info(f"Rate limited callback query for user {query.from_user.id}")
+        await query.answer("Eh slow down lah! Wait a while can?", show_alert=True)
         return
 
     # Show processing state
-    processing_results = [
-        InlineQueryResultArticle(
-            id="processing",
-            title="Translating...",
-            description="Wait ah, limpeh thinking how to translate... 🤔",
-            input_message_content=InputTextMessageContent("Processing translation..."),
-        )
-    ]
-    await update.inline_query.answer(processing_results, cache_time=0)
+    await query.answer("Translating...")
+    await query.edit_message_text(
+        f"🇬🇧 Original: {text}\n\n🤔 Wait ah limpeh translating...",
+    )
 
-    # Translate the text to Singlish
     try:
-        singlish_text = await openrouter_client.translate_to_singlish(query)
+        # Translate the text
+        singlish_text = await openrouter_client.translate_to_singlish(text)
+        logger.info(
+            f"Successfully translated callback query for user {query.from_user.id}: {text} -> {singlish_text}"
+        )
 
-        results = [
-            InlineQueryResultArticle(
-                id="1",
-                title="Singlish Translation",
-                description=singlish_text,
-                input_message_content=InputTextMessageContent(
-                    f"Original: {query}\nSinglish: {singlish_text}"
-                ),
-            )
-        ]
-
-        await update.inline_query.answer(results)
+        # Update with translation (without the "Translate Again" button)
+        await query.edit_message_text(
+            f"🇬🇧 Original: {text}\n🇸🇬 Singlish: {singlish_text}"
+        )
     except Exception as e:
-        logger.error(f"Error handling inline query: {str(e)}")
-        results = [
-            InlineQueryResultArticle(
-                id="error",
-                title="Error",
-                description="Something went wrong with the translation.",
-                input_message_content=InputTextMessageContent(
-                    "Aiyah, cannot translate lah! Got problem with the system."
-                ),
-            )
-        ]
-        await update.inline_query.answer(results)
+        logger.error(
+            f"Error in callback query translation for user {query.from_user.id}: {str(e)}"
+        )
+        await query.edit_message_text(
+            "Aiyo, cannot translate lah! Got problem with the system. Try again later!"
+        )
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -284,7 +364,7 @@ def main() -> None:
     try:
         config.validate_config()
     except ValueError as e:
-        logger.error(f"Configuration error: {str(e)}")
+        logger.error(f"Configuration config error: {str(e)}")
         sys.exit(1)
 
     # Create the Application
@@ -302,17 +382,24 @@ def main() -> None:
         )
     )
 
-    # Handler for mentions (in group chats)
+    # Handler for group messages (including mentions)
     application.add_handler(
         MessageHandler(
-            filters.TEXT & ~filters.COMMAND & ~filters.ChatType.PRIVATE, handle_mention
+            filters.TEXT
+            & ~filters.COMMAND
+            & (filters.ChatType.GROUPS | filters.ChatType.SUPERGROUP),
+            handle_mention,
+            # Run this handler before others
+            block=False,
         )
     )
 
-    # Handler for inline queries
+    # Add inline query handler
     application.add_handler(InlineQueryHandler(handle_inline_query))
 
-    # Add error handler
+    # Add callback query handler
+    application.add_handler(CallbackQueryHandler(handle_callback_query))
+
     application.add_error_handler(error_handler)
 
     # Start the Bot

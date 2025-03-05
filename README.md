@@ -25,10 +25,10 @@ LimpehSays is a Telegram bot that converts English text to authentic Singlish us
 
 - 🗣️ **Direct Chat Translation**: Chat directly with the bot to get instant Singlish translations
 - 👥 **Group Chat Support**: Add to groups and mention `@LimpehSays` for translations
-- ⚡ **Inline Mode**: Use in any chat with `@LimpehSays [text]`
 - 🔄 **Smart Model Switching**: Automatically switches between free and paid models
 - 🛡️ **Rate Limiting**: Prevents spam and ensures fair usage
 - 📝 **Comprehensive Logging**: Tracks translations and errors for debugging
+- 🔄 **Inline Mode**: Use the bot in any chat by typing `@LimpehSays` followed by your text
 
 ### 💬 Usage Examples
 
@@ -113,6 +113,7 @@ Bot: Dun understand leh, say what?
 | `OPENROUTER_API_KEY` | OpenRouter API key | Required |
 | `RATE_LIMIT` | Requests per user per minute | 5 |
 | `MODEL_TYPE` | AI model type ('free' or 'paid') | free |
+| `OPENROUTER_API_URL` | OpenRouter API URL | Required |
 
 ### AI Models
 
