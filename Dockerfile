@@ -6,17 +6,28 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set up logging directory with full permissions
+# Create non-root user and group
+RUN groupadd -r botgroup && \
+    useradd -r -g botgroup -s /bin/false botuser
+
+# Set up logging directory with proper permissions
 RUN mkdir -p /app/logs && \
-    chmod -R 777 /app
+    chown botuser:botgroup /app/logs && \
+    chmod 755 /app
 
 # Copy the rest of the application
 COPY . .
 
 # Ensure all files have proper permissions
-RUN chmod -R 777 /app/logs && \
-    touch /app/logs/bot.log && \
-    chmod 666 /app/logs/bot.log
+RUN chown -R botuser:botgroup /app && \
+    chmod -R 644 /app/logs/* && \
+    chmod 755 /app/logs && \
+    touch /app/logs/limpehsays_log.log && \
+    chown botuser:botgroup /app/logs/limpehsays_log.log && \
+    chmod 644 /app/logs/limpehsays_log.log
+
+# Switch to non-root user
+USER botuser
 
 # Run the bot
 CMD ["python", "bot.py"] 

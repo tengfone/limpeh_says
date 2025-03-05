@@ -28,11 +28,8 @@ logger.remove()
 logger.add(sys.stderr, level="INFO")
 
 # Set up logging with absolute paths
-LOG_DIR = os.path.join(os.getcwd(), "logs")
-LOG_FILE = os.path.join(LOG_DIR, "bot.log")
-
-# Ensure logs directory exists
-os.makedirs(LOG_DIR, exist_ok=True)
+LOG_DIR = "/app/logs"  # Use absolute path in Docker
+LOG_FILE = os.path.join(LOG_DIR, "limpehsays_log.log")
 
 # Configure file logging
 logger.add(
