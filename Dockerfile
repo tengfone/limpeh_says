@@ -6,14 +6,17 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
-COPY . .
+# Create non-root user first
+RUN useradd -m appuser
 
-# Create a non-root user and set up permissions
-RUN useradd -m appuser && \
-    mkdir -p logs && \
+# Create logs directory with proper permissions
+RUN mkdir -p /app/logs && \
     chown -R appuser:appuser /app && \
-    chmod -R 755 /app
+    chmod -R 755 /app && \
+    chmod 777 /app/logs
+
+# Copy the rest of the application
+COPY --chown=appuser:appuser . .
 
 USER appuser
 
