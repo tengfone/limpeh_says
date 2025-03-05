@@ -90,7 +90,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "LimpehSays Bot Help\n\n"
         "I convert text to Singlish using AI. Here's how to use me:\n\n"
         "1. Direct chat: Just send me any message and I'll respond in Singlish\n"
-        "2. In group chats: Mention me with @LimpehSays Hello, how are you?\n\n"
+        "2. In group chats: \n"
+        "   • Mention me with @LimpehSays Hello, how are you?\n"
+        "   • ⚠️ Important: Make sure to grant me permission to read messages in the group!\n"
+        "3. Inline mode: Type @LimpehSays in any chat, followed by your text\n\n"
         "I have a rate limit to prevent spam. Please be patient if you hit the limit.\n\n"
         "🔗 GitHub: https://github.com/tengfone/limpeh_says"
     )
