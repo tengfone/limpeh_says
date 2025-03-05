@@ -79,7 +79,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "1. Direct chat: Just send me any message and I'll respond in Singlish\n"
         "2. In group chats: Mention me with @LimpehSays Hello, how are you?\n"
         "3. Inline mode: Type @LimpehSays followed by your text in any chat\n\n"
-        "I have a rate limit to prevent spam. Please be patient if you hit the limit."
+        "I have a rate limit to prevent spam. Please be patient if you hit the limit.\n\n"
+        "🔗 GitHub: https://github.com/tengfone/limpeh_says"
     )
     await update.message.reply_text(help_text)
 
